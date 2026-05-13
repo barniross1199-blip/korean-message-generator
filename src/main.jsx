@@ -319,7 +319,6 @@ const categories = [
 
 const historyKey = 'korean-message-history';
 
-
 const customSituations = [
   { value: 'work', label: 'работа' },
   { value: 'salary', label: 'зарплата' },
