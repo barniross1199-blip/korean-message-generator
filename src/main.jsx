@@ -319,6 +319,7 @@ const categories = [
 
 const historyKey = 'korean-message-history';
 
+ codex/create-korean-message-generator-app
 const customSituations = [
   { value: 'work', label: 'работа' },
   { value: 'salary', label: 'зарплата' },
@@ -440,14 +441,20 @@ const generateCustomMessage = ({ message, situation, style }) => {
 
 function App() {
   const [activeMode, setActiveMode] = useState('templates');
+
+function App() {
+ main
   const [activeCategory, setActiveCategory] = useState(categories[0].name);
   const [toneByScenario, setToneByScenario] = useState({});
   const [copiedId, setCopiedId] = useState('');
   const [history, setHistory] = useState([]);
+ codex/create-korean-message-generator-app
   const [customText, setCustomText] = useState('');
   const [customSituation, setCustomSituation] = useState('work');
   const [customStyle, setCustomStyle] = useState('normal');
   const [customResult, setCustomResult] = useState(null);
+
+ main
 
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
@@ -470,21 +477,37 @@ function App() {
     setToneByScenario((current) => ({ ...current, [scenarioId]: tone }));
   };
 
+ codex/create-korean-message-generator-app
   const saveToHistory = (item) => {
     const newHistoryItem = {
       id: `${Date.now()}-${item.title}`,
+
+  const copyMessage = async (scenario, scenarioId) => {
+    const text = getMessage(scenario, scenarioId);
+    await navigator.clipboard.writeText(text);
+
+    const newHistoryItem = {
+      id: `${Date.now()}-${scenarioId}`,
+      category: activeCategory,
+      title: scenario.title,
+      text,
+ main
       copiedAt: new Date().toLocaleString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
       }),
+codex/create-korean-message-generator-app
       ...item,
+
+ main
     };
 
     const nextHistory = [newHistoryItem, ...history].slice(0, 8);
     setHistory(nextHistory);
     localStorage.setItem(historyKey, JSON.stringify(nextHistory));
+ codex/create-korean-message-generator-app
   };
 
   const copyText = async ({ text, category, title, copiedKey }) => {
@@ -525,11 +548,18 @@ function App() {
     });
   };
 
+
+    setCopiedId(scenarioId);
+    window.setTimeout(() => setCopiedId(''), 1600);
+  };
+
+ main
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem(historyKey);
   };
 
+ codex/create-korean-message-generator-app
   const renderHistory = () => (
     <aside className="h-fit rounded-[1.75rem] border border-white/10 bg-white/10 p-4 text-white shadow-soft backdrop-blur lg:sticky lg:top-5">
       <div className="flex items-center justify-between gap-3">
@@ -564,6 +594,8 @@ function App() {
     </aside>
   );
 
+
+ main
   return (
     <main className="min-h-screen bg-slate-950 text-slate-900">
       <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col bg-[radial-gradient(circle_at_top_left,#4f46e5_0,#111827_36%,#020617_75%)] px-4 py-5 sm:px-6 lg:px-8">
@@ -575,6 +607,7 @@ function App() {
             Корейские сообщения без стресса
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base">
+ codex/create-korean-message-generator-app
             Выберите готовый сценарий или напишите свою мысль по-русски — демо-генератор подберёт корейскую вежливую форму без подключения AI API.
           </p>
         </header>
@@ -757,6 +790,60 @@ function App() {
                   <div className="mt-4 rounded-2xl bg-slate-950 p-4 text-white">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Корейский вариант</p>
                     <p className="mt-2 text-lg font-bold leading-8 tracking-[-0.01em]">{customResult.korean}</p>
+
+            Выберите бытовую ситуацию, скопируйте готовую фразу и быстро настройте тон: мягче для деликатной просьбы или прямее для короткого сообщения.
+          </p>
+        </header>
+
+        <nav className="-mx-4 mt-5 flex gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0" aria-label="Категории">
+          {categories.map((category) => (
+            <button
+              key={category.name}
+              onClick={() => setActiveCategory(category.name)}
+              className={`shrink-0 rounded-2xl border px-4 py-3 text-left shadow-lg transition active:scale-95 ${
+                activeCategory === category.name
+                  ? 'border-white bg-white text-slate-950'
+                  : 'border-white/10 bg-white/10 text-white backdrop-blur hover:bg-white/15'
+              }`}
+            >
+              <span className="mr-2 text-xl" aria-hidden="true">{category.icon}</span>
+              <span className="font-bold">{category.name}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="grid flex-1 gap-4 lg:grid-cols-[1fr_20rem]">
+          <section className="space-y-4">
+            <div className={`rounded-[1.75rem] bg-gradient-to-r ${currentCategory.color} p-5 text-white shadow-soft`}>
+              <p className="text-sm font-semibold text-white/80">Категория</p>
+              <h2 className="mt-1 text-2xl font-black">{currentCategory.icon} {currentCategory.name}</h2>
+              <p className="mt-2 text-sm text-white/85">5 готовых сценариев с переводом, романизацией и уровнем вежливости.</p>
+            </div>
+
+            {currentCategory.scenarios.map((scenario) => {
+              const scenarioId = getScenarioId(currentCategory.name, scenario.title);
+              const activeTone = toneByScenario[scenarioId] || 'korean';
+              const message = getMessage(scenario, scenarioId);
+
+              return (
+                <article key={scenarioId} className="rounded-[1.75rem] border border-white/10 bg-white p-4 shadow-soft sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Сценарий</p>
+                      <h3 className="mt-1 text-xl font-black text-slate-950">{scenario.title}</h3>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{scenario.politeness}</span>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl bg-slate-950 p-4 text-white">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Корейский текст</span>
+                      <span className="rounded-full bg-white/10 px-2 py-1 text-[11px] font-semibold text-white/75">
+                        {activeTone === 'soft' ? 'мягче' : activeTone === 'direct' ? 'прямее' : 'базовый'}
+                      </span>
+                    </div>
+                    <p className="text-lg font-bold leading-8 tracking-[-0.01em]">{message}</p>
+ main
                   </div>
 
                   <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
@@ -787,6 +874,73 @@ function App() {
             {renderHistory()}
           </div>
         )}
+
+                      <dd className="mt-1 leading-6 text-slate-800">{scenario.russian}</dd>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <dt className="font-bold text-slate-500">Романизация</dt>
+                      <dd className="mt-1 leading-6 text-slate-800">{scenario.romanization}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <button
+                      onClick={() => copyMessage(scenario, scenarioId)}
+                      className="rounded-2xl bg-slate-950 px-4 py-3 font-bold text-white transition hover:bg-slate-800 active:scale-[0.98]"
+                    >
+                      {copiedId === scenarioId ? 'Скопировано ✓' : 'Копировать корейский'}
+                    </button>
+                    <button
+                      onClick={() => updateTone(scenarioId, 'soft')}
+                      className="rounded-2xl bg-cyan-50 px-4 py-3 font-bold text-cyan-800 transition hover:bg-cyan-100 active:scale-[0.98]"
+                    >
+                      Сделать мягче
+                    </button>
+                    <button
+                      onClick={() => updateTone(scenarioId, 'direct')}
+                      className="rounded-2xl bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:bg-amber-100 active:scale-[0.98]"
+                    >
+                      Сделать прямее
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+
+          <aside className="h-fit rounded-[1.75rem] border border-white/10 bg-white/10 p-4 text-white shadow-soft backdrop-blur lg:sticky lg:top-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-100">localStorage</p>
+                <h2 className="text-xl font-black">История копирования</h2>
+              </div>
+              {history.length > 0 && (
+                <button onClick={clearHistory} className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white hover:bg-white/20">
+                  Очистить
+                </button>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {history.length === 0 ? (
+                <p className="rounded-2xl bg-white/10 p-4 text-sm leading-6 text-slate-200">
+                  Здесь появятся последние 8 сообщений, которые вы скопировали.
+                </p>
+              ) : (
+                history.map((item) => (
+                  <div key={item.id} className="rounded-2xl bg-white p-3 text-slate-900">
+                    <div className="flex items-center justify-between gap-2 text-xs font-bold text-slate-500">
+                      <span>{item.category} · {item.title}</span>
+                      <span>{item.copiedAt}</span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold leading-6">{item.text}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+        </div>
+ main
       </section>
     </main>
   );
